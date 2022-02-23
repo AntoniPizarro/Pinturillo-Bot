@@ -1,8 +1,6 @@
-import time
-from pynput.keyboard import Key, Controller
+from pprint import pprint
 
 def diccionario():
-    keyboard = Controller()
     f = open("listado-general.txt", "r", encoding="utf-8")
     content = f.read()
     palabra = ""
@@ -12,7 +10,6 @@ def diccionario():
             palabra += char
         else:
             palabras.append(palabra)
-            keyboard.type(palabra)
             palabra = ""
     pocas = []
     tres = []
@@ -103,73 +100,79 @@ def diccionario():
     f.close()
     return diccionario
 
-def typer(longPalabra, diccionario):
-    keyboard = Controller()
-    time.sleep(4)
-    if longPalabra == "pocas":
-        for i in range(len(diccionario["pocas"])):
-            keyboard.type(diccionario["pocas"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 3:
-        for i in range(len(diccionario["tres"])):
-            keyboard.type(diccionario["tres"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 4:
-        for i in range(len(diccionario["cuatro"])):
-            keyboard.type(diccionario["cuatro"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 5:
-        for i in range(len(diccionario["cinco"])):
-            keyboard.type(diccionario["cinco"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 6:
-        for i in range(len(diccionario["seis"])):
-            keyboard.type(diccionario["seis"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 7:
-        for i in range(len(diccionario["siete"])):
-            keyboard.type(diccionario["siete"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 8:
-        for i in range(len(diccionario["ocho"])):
-            keyboard.type(diccionario["ocho"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 9:
-        for i in range(len(diccionario["nueve"])):
-            keyboard.type(diccionario["nueve"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 10:
-        for i in range(len(diccionario["diez"])):
-            keyboard.type(diccionario["diez"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 11:
-        for i in range(len(diccionario["once"])):
-            keyboard.type(diccionario["once"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 12:
-        for i in range(len(diccionario["doce"])):
-            keyboard.type(diccionario["doce"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 13:
-        for i in range(len(diccionario["trece"])):
-            keyboard.type(diccionario["trece"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 14:
-        for i in range(len(diccionario["catorce"])):
-            keyboard.type(diccionario["catorce"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 15:
-        for i in range(len(diccionario["quince"])):
-            keyboard.type(diccionario["quince"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == 16:
-        for i in range(len(diccionario["dieciseis"])):
-            keyboard.type(diccionario["dieciseis"][i])
-            keyboard.press(Key.enter)
-    elif longPalabra == "muchas":
-        for i in range(len(diccionario["muchas"])):
-            keyboard.type(diccionario["muchas"][i])
-            keyboard.press(Key.enter)
+class Buscador:
+
+    def __init__(self, lista) -> None:
+        self.lista = lista
+        self.letras_encontradas = {}
+        self.letras_descartadas = set()
+        self.letras_posicionadas = {}
+    
+    def letra_encontrada(self, letra, posicion):
+        try:
+            self.letras_encontradas[letra].append(posicion)
+        except:
+            self.letras_encontradas[letra] = [posicion]
+    
+    def letra_descartada(self, letra):
+        self.letras_descartadas.add(letra)
+    
+    def letra_posicionada(self, letra, posicion):
+        self.letras_posicionadas[posicion] = letra
+        self.letra_encontrada(letra)
+    
+    def segun_encontradas(self, palabra):
+        for letra in palabra:
+            if letra in self.letras_encontradas:
+                for posicion in self.letras_encontradas[letra]:
+                    if palabra[posicion] == letra:
+                        return False
             
-l = input("numero de letras   ")
-typer(l, diccionario())
+        return True
+    
+    def segun_descartadas(self, palabra):
+        for letra in palabra:
+            if letra in self.letras_descartadas:
+                print(f"La palabra {palabra} no pasa el filtro segun_descartadas")
+                return False
+        
+        return True
+    
+    def segun_posicionadas(self, palabra):
+        for i in range(len(palabra)):
+            if i in self.letras_posicionadas and palabra[i] != self.letras_posicionadas[i]:
+                print(f"La palabra {palabra} no pasa el filtro segun_posicionadas")
+                return False
+        
+        return True
+    
+    def buscar_posibles(self):
+        res = []
+        for palabra in self.lista:
+            if not self.segun_descartadas(palabra):
+                continue
+            elif not self.segun_encontradas(palabra):
+                continue
+            elif not self.segun_posicionadas(palabra):
+                continue
+
+            res.append(palabra)
+
+        return res
+
+buscador = Buscador(diccionario()["cinco"])
+
+encontradas = {"z":[0]}
+descartadas = ""
+posicionadas = {}
+
+for letra in encontradas:
+    for posicion in encontradas[letra]:
+        buscador.letra_encontrada(letra, posicion)
+for letra in descartadas:
+    buscador.letra_descartada(letra)
+for posicion in posicionadas:
+    buscador.letra_posicionada(posicionadas[posicion], posicion)
+
+res = buscador.buscar_posibles()
+pprint(res)
